@@ -1,0 +1,131 @@
+name: Haskell CI
+
+on:
+  push:
+    path:
+      - "**.hs"
+      - "**.lhs"
+      - "**.cabal"
+      - "stack.yaml"
+      - "stack.yaml.lock"
+      - ".github/workflows/Haskell-CI.yaml"
+
+jobs:
+  build_stack:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - windows-2019
+          - macos-11
+        stack-version:
+          - latest
+        ghc-version:
+          - latest
+        cabal-version:
+          - latest
+    name: Build - ${{ matrix.os }} - Stack (${{ matrix.stack-version }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell GHC (${{ matrix.ghc-version }}), Stack (${{ matrix.stack-version }}), Cabal (${{ matrix.cabal-version }})
+        with:
+          ghc-version: ${{ matrix.ghc-version }}
+          stack-version: ${{ matrix.stack-version }}
+          cabal-version: ${{ matrix.cabal-version }}
+      - run: stack build
+        shell: bash
+  build_cabal_v1:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - windows-2019
+          - macos-11
+        ghc-version:
+          - 8.8.4
+          - 8.10.7
+          - 9.0.1
+          - 9.2.1
+          - latest
+        cabal-version:
+          - 3.0.1.0
+          - 3.2.1.0
+          - 3.4.0.0
+          - 3.6.0.0
+          - latest
+    name: Build - ${{ matrix.os }} - Cabal-v1 (${{ matrix.cabal-version }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell GHC (${{ matrix.ghc-version }}), Cabal (${{ matrix.cabal-version }})
+        with:
+          ghc-version: ${{ matrix.ghc-version }}
+          enable-stack: false
+          cabal-version: ${{ matrix.cabal-version }}
+      - run: cabal v1-build
+        shell: bash
+  build_cabal_v2:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - windows-2019
+          - macos-11
+        ghc-version:
+          - 8.8.4
+          - 8.10.7
+          - 9.0.1
+          - 9.2.1
+          - latest
+        cabal-version:
+          - 3.0.1.0
+          - 3.2.1.0
+          - 3.4.0.0
+          - 3.6.0.0
+          - latest
+    name: Build - ${{ matrix.os }} - Cabal-v2 (${{ matrix.cabal-version }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell GHC (${{ matrix.ghc-version }}), Cabal (${{ matrix.cabal-version }})
+        with:
+          ghc-version: ${{ matrix.ghc-version }}
+          enable-stack: false
+          cabal-version: ${{ matrix.cabal-version }}
+      - run: cabal v2-build
+        shell: bash
+  build_cabal_new:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-20.04
+          - windows-2019
+          - macos-11
+        ghc-version:
+          - 8.8.4
+          - 8.10.7
+          - 9.0.1
+          - 9.2.1
+          - latest
+        cabal-version:
+          - 3.0.1.0
+          - 3.2.1.0
+          - 3.4.0.0
+          - 3.6.0.0
+          - latest
+    name: Build - ${{ matrix.os }} - Cabal-new (${{ matrix.cabal-version }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: haskell/actions/setup@v1
+        name: Setup Haskell GHC (${{ matrix.ghc-version }}), Cabal (${{ matrix.cabal-version }})
+        with:
+          ghc-version: ${{ matrix.ghc-version }}
+          enable-stack: false
+          cabal-version: ${{ matrix.cabal-version }}
+      - run: cabal new-build
+        shell: bash
