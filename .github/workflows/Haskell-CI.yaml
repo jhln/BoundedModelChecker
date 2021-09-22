@@ -44,16 +44,10 @@ jobs:
           - windows-2019
           - macos-11
         ghc-version:
-          - 8.8.4
-          - 8.10.7
-          - 9.0.1
-          - 9.2.1
-          - latest
+          - 8.8
+          - 8.10
+          - 9.0
         cabal-version:
-          - 3.0.1.0
-          - 3.2.1.0
-          - 3.4.0.0
-          - 3.6.0.0
           - latest
     name: Build - ${{ matrix.os }} - Cabal-v1 (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
@@ -75,16 +69,10 @@ jobs:
           - windows-2019
           - macos-11
         ghc-version:
-          - 8.8.4
-          - 8.10.7
-          - 9.0.1
-          - 9.2.1
-          - latest
+          - 8.8
+          - 8.10
+          - 9.0
         cabal-version:
-          - 3.0.1.0
-          - 3.2.1.0
-          - 3.4.0.0
-          - 3.6.0.0
           - latest
     name: Build - ${{ matrix.os }} - Cabal-v2 (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
@@ -106,16 +94,10 @@ jobs:
           - windows-2019
           - macos-11
         ghc-version:
-          - 8.8.4
-          - 8.10.7
-          - 9.0.1
-          - 9.2.1
-          - latest
+          - 8.8
+          - 8.10
+          - 9.0
         cabal-version:
-          - 3.0.1.0
-          - 3.2.1.0
-          - 3.4.0.0
-          - 3.6.0.0
           - latest
     name: Build - ${{ matrix.os }} - Cabal-new (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
