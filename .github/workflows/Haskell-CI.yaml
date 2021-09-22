@@ -49,7 +49,7 @@ jobs:
           - 9.0
         cabal-version:
           - latest
-    name: Build - ${{ matrix.os }} - Cabal-v1 (${{ matrix.cabal-version }})
+    name: Build - ${{ matrix.os }} - GHC (${{ matrix.ghc-version }}) - Cabal-v1 (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -74,7 +74,7 @@ jobs:
           - 9.0
         cabal-version:
           - latest
-    name: Build - ${{ matrix.os }} - Cabal-v2 (${{ matrix.cabal-version }})
+    name: Build - ${{ matrix.os }} - GHC (${{ matrix.ghc-version }}) - Cabal-v2 (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -99,7 +99,7 @@ jobs:
           - 9.0
         cabal-version:
           - latest
-    name: Build - ${{ matrix.os }} - Cabal-new (${{ matrix.cabal-version }})
+    name: Build - ${{ matrix.os }} - GHC ( ${{ matrix.ghc-version}} ) - Cabal-new (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
