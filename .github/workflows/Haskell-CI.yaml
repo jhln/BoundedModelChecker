@@ -15,15 +15,15 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-20.04
-          - windows-2019
-          - macos-11
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-11'
         stack-version:
-          - latest
+          - 'latest'
         ghc-version:
-          - latest
+          - 'latest'
         cabal-version:
-          - latest
+          - 'latest'
     name: Build - ${{ matrix.os }} - Stack (${{ matrix.stack-version }})
     runs-on: ${{ matrix.os }}
     steps:
@@ -40,13 +40,13 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-20.04
-          - windows-2019
-          - macos-11
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-11'
         ghc-version:
-          - 8.8
-          - 8.10
-          - 9.0
+          - '8.8'
+          - '8.10'
+          - '9.0'
         cabal-version:
           - latest
     name: Build - ${{ matrix.os }} - GHC (${{ matrix.ghc-version }}) - Cabal-v1 (${{ matrix.cabal-version }})
@@ -65,13 +65,13 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-20.04
-          - windows-2019
-          - macos-11
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-11'
         ghc-version:
-          - 8.8
-          - 8.10
-          - 9.0
+          - '8.8'
+          - '8.10'
+          - '9.0'
         cabal-version:
           - latest
     name: Build - ${{ matrix.os }} - GHC (${{ matrix.ghc-version }}) - Cabal-v2 (${{ matrix.cabal-version }})
@@ -90,15 +90,15 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-20.04
-          - windows-2019
-          - macos-11
+          - 'ubuntu-20.04'
+          - 'windows-2019'
+          - 'macos-11'
         ghc-version:
-          - 8.8
-          - 8.10
-          - 9.0
+          - '8.8'
+          - '8.10'
+          - '9.0'
         cabal-version:
-          - latest
+          - 'latest'
     name: Build - ${{ matrix.os }} - GHC ( ${{ matrix.ghc-version}} ) - Cabal-new (${{ matrix.cabal-version }})
     runs-on: ${{ matrix.os }}
     steps:
