@@ -136,6 +136,8 @@ deriving instance Alternative FD
 
 deriving instance MonadPlus FD
 
+deriving instance MonadFail FD
+
 -- FD variables
 newtype FDVar = FDVar { unFDVar :: Int } deriving (Ord, Eq, Show)
 
@@ -353,10 +355,10 @@ addArithmeticConstraint getZDomain getXDomain getYDomain xexpr yexpr = Expr $
           xv <- lookup x
           yv <- lookup y
           zv <- lookup z
-          let znew = zv `intersection` (getDomain xv yv)
+          let znew = zv `intersection` getDomain xv yv
           trace (show z ++ " before: "  ++ show zv ++ show "; after: " ++ show znew) (return ())
           if not $ Domain.null znew
-            then if (znew /= zv)
+            then if znew /= zv
             then update z znew
             else return True
             else return False

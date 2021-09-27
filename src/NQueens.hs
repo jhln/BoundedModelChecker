@@ -1,4 +1,7 @@
+{-# LANGUAGE TypeFamilies #-}
 module NQueens where
+
+
 
 import Data.List(zip,
                  tails,
@@ -9,7 +12,7 @@ import Prelude ()
 import Language.CP.SearchTree
 import Language.CP.FDSugar
 
-nqueens n = exists n $ \queens -> model queens n
+nqueens n = exists (\queens -> model [queens] n)
 
 model queens n = queens `allin` (1,n) /\
                  alldifferent queens /\

@@ -7,6 +7,7 @@ https://hackage.haskell.org/package/monadiccp-0.1/docs/src/Language-CP-FDSugar.h
 {-# LANGUAGE TransformListComp #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ImpredicativeTypes #-}
 
 module Language.CP.FDSugar where
 
@@ -41,17 +42,21 @@ ra = CRST
 ld :: Int -> CLimitedDiscrepancyST FD a
 ld = CLDST
 
+{-
+
 newBound :: NewBound FD
-newBound = do obj <- fd_objective
-              (val:_) <- fd_domain obj
-              l <- markSM
-              return ((\tree -> tree `insertTree` (obj @< val)) :: forall b . Tree FD b -> Tree FD b)
+newBound = do
+  obj <- fd_objective
+  (val:_) <- fd_domain obj
+  l <- markSM
+  return ((\tree -> tree `insertTree` (obj @< val)) :: forall b . Tree FD b -> Tree FD b)
 
 newBoundBis :: NewBound FD
-newBoundBis = do obj <- fd_objective
-                 (val:_) <- fd_domain obj
-                 let m = val `div` 2
-                 return ((\tree -> (obj @< (m + 1) \/ ( obj @> m /\ obj @< val)) /\ tree) :: forall b . Tree FD b -> Tree FD b)
+newBoundBis = do
+  obj <- fd_objective
+  (val:_) <- fd_domain obj
+  let m = val `div` 2
+  return ((\tree -> (obj @< (m + 1) \/ ( obj @> m /\ obj @< val)) /\ tree) :: forall b . Tree FD b -> Tree FD b)
 
 restart :: (Queue q, Solver solver, CTransformer c, CForSolver c ~ solver,
           Elem q ~ (Label solver,Tree solver (CForResult c),CTreeState c))
@@ -63,6 +68,7 @@ restartOpt :: (Queue q, CTransformer c, CForSolver c ~ FD,
       => q -> [c] -> Tree FD (CForResult c) -> (Int,[CForResult c])
 restartOpt q cs model = runSM $ eval model q (RestartST (map Seal cs) opt)
         where opt tree = newBound >>= \f -> return (f tree)
+-}
 
 --------------------------------------------------------------------------------
 -- ENUMERATION
@@ -89,8 +95,9 @@ enum queen values =
        | value <- values
        ]
 
-value var = do [val] <- fd_domain var
-               return val
+value var = do
+  [val] <- fd_domain var
+  return val
 
 middleout l = let n = (length l) `div` 2 in
               interleave (drop n l) (reverse $ take n l)
@@ -104,7 +111,6 @@ interleave (x:xs) ys = x:interleave ys xs
 -- RESULT
 --------------------------------------------------------------------------------
 
-assignments = mapM assignment
 assignment q = Label $ value q >>= (return . Return)
 --------------------------------------------------------------------------------
 -- SYNTACTIC SUGAR

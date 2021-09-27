@@ -2,16 +2,18 @@
  - 	Monadic Constraint Programming
  - 	http://www.cs.kuleuven.be/~toms/Haskell/
  - 	Tom Schrijvers
-https://hackage.haskell.org/package/monadiccp-0.1/docs/src/Language-CP-Transformers.html
+https://hackage.haskell.org/package/monadiccp-0.2/docs/src/Language-CP-Transformers.html
  -}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE ConstrainedClassMethods #-}
+
 module Language.CP.Transformers where
 
 import Language.CP.Solver
 import Language.CP.SearchTree
-import Language.CP.PriorityQueue
+import Language.CP.Queue
 
 --------------------------------------------------------------------------------
 -- EVALUATION
