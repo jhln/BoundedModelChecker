@@ -15,16 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Language.CP.Domain
-                     , Language.CP.FD
-                     , Language.CP.Solver
-                     , Language.CP.FDSugar
-                     , Language.CP.PriorityQueue
-                     , Language.CP.SearchTree
-                     , Language.CP.Transformers
-                     , Language.CP.Queue
-                     , Language.CP.ComposableTransformers
-                     , NQueens
+  exposed-modules:
   build-depends:       base >= 4 && < 5
                      , containers >= 0.5 && < 1
                      , mtl >= 2.1 && < 3
