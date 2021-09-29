@@ -1,17 +1,18 @@
 module FD where
 
-data FDConstraint s =
-    Less (FDExpr s) (FDExpr s)
-  | Diff (FDExpr s) (FDExpr s)
-  | Same (FDExpr s) (FDExpr s)
-  | Dom (FDExpr s) Int Int deriving (Show)
+data FDConstraint
+  = Less FDExpr FDExpr
+  | Diff FDExpr FDExpr
+  | Same FDExpr FDExpr
+  | Dom FDExpr Int Int deriving (Show)
 
 
-data FDExpr s = Var (FDTerm s)
+data FDExpr
+  = Var FDTerm
   | Const Int
-  | Plus (FDExpr s) (FDExpr s)
-  | Minus (FDExpr s) (FDExpr s)
-  | Mult (FDExpr s) (FDExpr s) deriving (Show)
+  | Plus FDExpr FDExpr
+  | Minus FDExpr FDExpr
+  | Mult FDExpr FDExpr  deriving (Show)
 
 
-data FDTerm s = Named String s | Generated Int s deriving (Show, Eq)
+data FDTerm = Named String | Generated Int deriving (Show, Eq)

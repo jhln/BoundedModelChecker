@@ -19,14 +19,15 @@ allin queens range = conj [q `in_domain` range | q <- queens ]
 
 alldifferent queens = conj [ qi @/= qj | qi:qjs <- tails queens, qj <- qjs]
 
-diagonals queens = conj [ (qi @/= (qj @+ d)) /\ (qj @/= (qi @+ d))
+diagonals queens = conj [ (qi @/= (qj @+ (Const d))) /\
+                          (qj @/= (qi @+ (Const d)))
                         | qi:qjs <- tails queens,
-                          (qj,d) <- zip qjs [1..]]
+                          (qj,d) <- zip qjs ([1..]::[Int])]
 
 enumerate queens values = conj [ enum queen values
                                | queen <- queens ]
 
---enum :: FDExpr s -> [Int] -> Tree solver s
+enum :: FDExpr -> [Int] -> Tree Maybe ()
 enum var values = disj [ var @= value | value <- values ]
 
 {-
@@ -58,10 +59,10 @@ v `in_domain` (l, u) = Add (Dom v l u) true
 e @= n = Add (Same e (Const n)) true
 
 --(@/=) :: Term solver -> Term solver -> Tree solver a
-e1 @/= e2 = Add (Diff (e1 e2)) true
+e1 @/= e2 = Add (Diff e1 e2) true
 
 --(@+) :: Term solver -> Term solver -> Term solver
-e1 @+ e2 = Plus (e1 e2)
+e1 @+ e2 = Plus e1 e2
 
 --true :: Tree solver ()
 true = Return ()
@@ -75,3 +76,13 @@ false = Fail
 (/\) = (>>)
 
 (\/) = Try
+
+instance Solver Maybe where
+  type Constraint Maybe = FDConstraint
+  type Term Maybe = FDTerm
+  type Label Maybe = Int
+  newvar = undefined
+  add = undefined
+  mark = undefined
+  goto = undefined
+  run = undefined
