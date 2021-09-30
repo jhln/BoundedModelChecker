@@ -64,10 +64,14 @@ deriving instance MonadPlus FD
 
 addC :: FDConstraint -> FD Bool
 addC (Less (Var v1) (Var v2)) = (unFDTerm v1) .<. (unFDTerm v2)
+addC (Less (Const i) (Var v)) = (unFDTerm v) `greater` i
+addC (Less (Var v) (Const i)) = (unFDTerm v) `less` i
 addC (Same (Var v1) (Var v2)) = (unFDTerm v1) `same` (unFDTerm v2)
 addC (Same (Var v) (Const c)) = (unFDTerm v) `hasValue` c
 addC (Same (Const c) (Var v)) = (unFDTerm v) `hasValue` c
 addC (Diff (Var v1) (Var v2)) = (unFDTerm v1) `different` (unFDTerm v2)
+addC (Dom v l u)              = addC (Less v (Const (u + 1))) >>
+                                addC (Less (Const (l - 1)) v)
 
 
 -- FD variables
@@ -234,3 +238,19 @@ infix 4 .<.
                 then whenwhen (xv /= xv') (yv /= yv') (update x xv') (update y yv')
                 else return False
         else return False
+
+greater :: FDVar -> Int -> FD Bool
+greater x i = do
+  xv <- lookup x
+  let xv' = IntSet.filter (> i) xv
+  if not $ IntSet.null xv'
+    then (update x xv')
+    else return False
+
+less :: FDVar -> Int -> FD Bool
+less x i = do
+  xv <- lookup x
+  let xv' = IntSet.filter (< i) xv
+  if not $ IntSet.null xv'
+    then (update x xv')
+    else return False
