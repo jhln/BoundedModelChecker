@@ -14,6 +14,7 @@ data Tree solver a
   | Fail
   | Dynamic (solver (Tree solver a))
 
+
 instance Functor (Tree solver) where
   --fmap f xs  =  xs >>= return . f
   fmap = liftM

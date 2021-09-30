@@ -8,6 +8,8 @@ import Solver
 --import TreeSolver
 import FD
 
+{-
+
 --nqueens n = exist n (\queens -> (model queens n))-- /\ (enumerate queens [1..n]))
 
 --model queens n = (queens `allin` (1, n)) /\
@@ -86,3 +88,5 @@ instance Solver Maybe where
   mark = undefined
   goto = undefined
   run = undefined
+
+-}

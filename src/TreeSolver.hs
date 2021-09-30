@@ -1,7 +1,11 @@
+{-# LANGUAGE FlexibleInstances #-}
 module TreeSolver where
+
+
 
 import Tree
 import Solver
+import FD
 
 solve :: Solver solver => Tree solver a -> [a]
 solve = run . eval

@@ -20,6 +20,8 @@ library
                      , Solver
                      , FD
                      , TreeSolver
+                     , Simple
+                     , TreeSugar
   build-depends:       base >= 4 && < 5
                      , containers >= 0.5 && < 1
                      , mtl >= 2.1 && < 3
