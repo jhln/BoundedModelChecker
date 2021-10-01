@@ -6,6 +6,8 @@ module Transformers where
 
 import Data.Sequence
 
+import System.Random
+
 import Solver
 import Tree
 import Queue
@@ -19,6 +21,8 @@ class Transformer t where
   nextT :: SearchSig solver q t a
   nextT = evalt'
   initT :: t -> (EvalState t, TreeState t)
+--  tryT :: SearchSig solver q t a
+--  tryT = evalt'
 
 type SearchSig solver q t a =
   (Solver solver, Queue q,
@@ -70,3 +74,15 @@ instance Transformer DepthBoundedST where
   nextT tree q t es ts
     | ts == 0 = continuet q t True
     | otherwise = evalt' tree q t es ts
+
+newtype RandomizeST = RDST Int
+
+instance Transformer RandomizeST where
+  type EvalState RandomizeST = [Bool]
+  type TreeState RandomizeST = ()
+  initT (RDST seed) = (randoms (mkStdGen seed),())
+
+-- TODO: what is this?
+tryT (Try l r) q t (b:bs) ts =
+    if b then evalt' (Try r l) q t bs ts
+    else evalt' (Try l r) q t bs ts
