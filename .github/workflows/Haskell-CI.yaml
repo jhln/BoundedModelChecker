@@ -59,6 +59,7 @@ jobs:
           ghc-version: ${{ matrix.ghc-version }}
           enable-stack: false
           cabal-version: ${{ matrix.cabal-version }}
+      - run: cabal v1-install --only-dependencies
       - run: cabal v1-build
         shell: bash
   build_cabal_v2:
