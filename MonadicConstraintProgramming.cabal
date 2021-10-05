@@ -25,6 +25,8 @@ library
                      , Queue
                      , Transformers
                      , LogicAssambler
+                     , BoundedSolver
+                     , BoundedTree
   build-depends:       base >= 4 && < 5
                      , containers >= 0.5 && < 1
                      , mtl >= 2.1 && < 3
