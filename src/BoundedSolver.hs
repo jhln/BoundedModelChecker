@@ -42,7 +42,7 @@ instance Solver BMSolver where
   type Term       BMSolver  = BMSolverTerm
   type Label      BMSolver  = BMSolverState
 
-  newvar  = newVar [-10..10] >>= (return . BMSolverTerm)
+  newvar  = newVar [-10 .. 10] >>= (return . BMSolverTerm)
   add     = addC
   run p    = runBMSolver p
 
@@ -74,7 +74,8 @@ addC (Same (Const c) (Var v)) = (unBMSolverTerm v) `hasValue` c
 
 
 -- BMSolver variables
-newtype BMSolverVar = BMSolverVar { unBMSolverVar :: Int } deriving (Ord, Eq, Show)
+data BMSolverVar = BMSolverVar { unBMSolverVar :: Int, nameBMSolver :: String } 
+  deriving (Ord, Eq, Show)
 
 type VarSupply = BMSolverVar
 
@@ -101,7 +102,7 @@ runBMSolver bmSolver = fromJust $ evalStateT (unBMSolver bmSolver') initState
            where bmSolver' = bmSolver -- BMSolver' = newVar () >> BMSolver
 
 initState :: BMSolverState
-initState = BMSolverState { varSupply = BMSolverVar 0,
+initState = BMSolverState { varSupply = BMSolverVar 0 "",
                       varMap = Map.empty--,
                       --objective = BMSolverVar 0
                     }
@@ -112,7 +113,7 @@ newVar :: [Int] -> BMSolver BMSolverVar
 newVar d = do
     s <- get
     let v = varSupply s
-    put $ s { varSupply = BMSolverVar (unBMSolverVar v + 1) }
+    put $ s { varSupply = BMSolverVar (unBMSolverVar v + 1) $ nameBMSolver v}
     modify $ \s ->
         let vm = varMap s
             vi = VarInfo {
