@@ -65,12 +65,12 @@ deriving instance Alternative BMSolver
 deriving instance MonadPlus BMSolver
 
 addC :: BMSolverConstraint -> BMSolver Bool
-addC (Less (Var v1) (Var v2)) = (u BMSolverTerm v1) .<. (u BMSolverTerm v2)
-addC (Less (Const i) (Var v)) = (u BMSolverTerm v) `greater` i
-addC (Less (Var v) (Const i)) = (u BMSolverTerm v) `less` i
-addC (Same (Var v1) (Var v2)) = (u BMSolverTerm v1) `same` (u BMSolverTerm v2)
-addC (Same (Var v) (Const c)) = (u BMSolverTerm v) `hasValue` c
-addC (Same (Const c) (Var v)) = (u BMSolverTerm v) `hasValue` c
+addC (Less (Var v1) (Var v2)) = (unBMSolverTerm v1) .<. (unBMSolverTerm v2)
+addC (Less (Const i) (Var v)) = (unBMSolverTerm v) `greater` i
+addC (Less (Var v) (Const i)) = (unBMSolverTerm v) `less` i
+addC (Same (Var v1) (Var v2)) = (unBMSolverTerm v1) `same` (unBMSolverTerm v2)
+addC (Same (Var v) (Const c)) = (unBMSolverTerm v) `hasValue` c
+addC (Same (Const c) (Var v)) = (unBMSolverTerm v) `hasValue` c
 
 
 -- BMSolver variables
@@ -97,8 +97,8 @@ data BMSolverState = BMSolverState
 
 -- Run the BMSolver monad and produce a lazy list of possible solutions.
 runBMSolver :: BMSolver a -> a
-runBMSolver BMSolver = fromJust $ evalStateT (unBMSolver BMSolver') initState
-           where BMSolver' = BMSolver -- BMSolver' = newVar () >> BMSolver
+runBMSolver bmSolver = fromJust $ evalStateT (unBMSolver bmSolver') initState
+           where bmSolver' = bmSolver -- BMSolver' = newVar () >> BMSolver
 
 initState :: BMSolverState
 initState = BMSolverState { varSupply = BMSolverVar 0,
