@@ -21,10 +21,10 @@ in_domain v (l, u) = Add (Dom v l u ) true
 --(@/=) :: Term solver -> Term solver -> Tree solver a
 e1 @/= e2 = Add (Diff e1 e2) true
 
-(/\) :: Tree FD a -> Tree FD b -> Tree FD b
+(/\) :: (Solver solver) => Tree solver a -> Tree solver b -> Tree solver b
 (/\) = (>>)
 
-(\/) :: Tree FD a -> Tree FD a -> Tree FD a
+(\/) :: (Solver solver) => Tree solver a -> Tree solver a -> Tree solver a
 (\/) = Try
 
 conj :: (Foldable t) => t (Tree FD ()) -> Tree FD ()
