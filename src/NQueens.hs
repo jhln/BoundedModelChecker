@@ -16,6 +16,7 @@ import           Data.IntSet (IntSet)
 import qualified Data.IntSet as IntSet
 import           Data.Map (Map, (!))
 import           Sets
+import GHC.Float (int2Double)
 --import           Relations
 
 --nqueens n = exist n (\queens -> (model queens n))-- /\ (enumerate queens [1..n]))
@@ -129,49 +130,95 @@ ballsRel = ballsSet
 type DirectedRel a b = Set (a, b)
 
 projDom :: DirectedRel a b -> DirectedRel Integer a
-projDom (Set pairs) = 
+projDom (Set pairs) =
   Set $ zipWith (\ i (a,b) -> (i,a)) [1..] pairs
 projRange :: DirectedRel a b -> DirectedRel Integer b
-projRange (Set pairs) = 
+projRange (Set pairs) =
   Set $ zipWith (\ i (a,b) -> (i,b)) [1..] pairs
 
-codomainForDomElem :: Eq a => 
+codomainForDomElem :: Eq a =>
   a -> DirectedRel a b -> [b]
-codomainForDomElem e (Set pairs) = 
+codomainForDomElem e (Set pairs) =
   [b | (a,b) <- pairs, a == e]
-domainForCodomElem :: Eq b => 
+domainForCodomElem :: Eq b =>
   b -> DirectedRel a b -> [a]
-domainForCodomElem e (Set pairs) = 
+domainForCodomElem e (Set pairs) =
   [a | (a,b) <- pairs, b == e]
 
 countColoured = do
   choices <- test3ChoicesForm5Balls
   --return choices
-  t <- return $ do
-    chocenBall <- choices
-    codomainForDomElem chocenBall ballsSet
+  let t = do
+        chocenBall <- choices
+        codomainForDomElem chocenBall ballsSet
   let selection = countCol t (0,0)
    --countEqPair (2,1) selection
   return selection
 
-test nrB nrR = countEqPair (nrB,nrR) countColoured 0
-test2Blues1Red = test 2 1
+testAbsolut nrB nrR = countEqPair (nrB,nrR) countColoured 0
+testRelativ nrB nrR =
+  let
+    specificColoured =
+      countEqPair (nrB,nrR) countColoured 0
+    allPosible = length countColoured
+  in div allPosible
+    $ countEqPair (nrB,nrR) countColoured 0
 
+test2Blues1Red = testRelativ 2 1
 
+--- zählt die aufgetretenen farben
 countCol :: (Num a, Num b) => [Color] -> (a, b) -> (a, b)
 countCol (Blue:rest) (nrB, nrR) = countCol rest (nrB+1,nrR)
 countCol (Red:rest) (nrB, nrR) = countCol rest (nrB,nrR+1)
 countCol [] (nrB, nrR) = (nrB,nrR)
 
-countEqPair :: (Eq a, Eq b) => (a, b) -> [(a, b)] -> Integer -> Integer
+--- zählt die passenden choices zur vorgegebenen farbverteilung
+countEqPair :: (Eq a, Eq b) => (a, b) -> [(a, b)] -> Int -> Int
 countEqPair (nrB,nrR) ((nrB', nrR'):rest) acc
-  | nrB == nrB' && nrR == nrR' = 
+  | nrB == nrB' && nrR == nrR' =
     countEqPair (nrB,nrR) rest $  acc +1
   | otherwise = countEqPair (nrB,nrR) rest acc
 countEqPair _ [] acc = acc
 
+--- anzahl der möglichen partitionierungen eines sets in k classen
+stirling :: Integer -> Integer -> Integer
+stirling n 1 = 1
+stirling n k
+  | n == k = 1
+  | otherwise = k * stirling (n-1) k + stirling (n-1) (k-1)
 
+type PartitionSet a = [Partition a]
+type Partition a = [Class a]
+type Class a = [a]
 
+--- generiert die möglichen partitionierungen eines sets in k classen
+stirlingSet :: Eq a => [a] -> Int -> PartitionSet a
+stirlingSet [] _ = error "no partitining possible"
+stirlingSet set 1 = return $ return set
+stirlingSet set@(e:rest) n 
+  | length set == n = return $ return <$> set
+  | otherwise = inExisting ++ ownClass
+      where
+        ownClass = 
+          (return e : ) <$> stirlingSet rest (n-1)
+        inExisting = 
+          do
+            partition <- stirlingSet rest n
+            singleClass <- partition
+            let newPartition = Data.List.delete singleClass partition
+            return $ (e:singleClass):newPartition 
+
+testStirling :: PartitionSet Integer
+testStirling = stirlingSet [1..5] 2
+
+-- generiert alle möglichen partitionierungen eines sets
+bellSet :: Eq a => [a] -> PartitionSet a
+bellSet set = [1..(length set)] >>= stirlingSet set
+
+bettTest :: PartitionSet Integer
+bettTest = bellSet [1..5]
+
+--- testet für eine liste, ob eine partition vorliegt
 listPartition :: Eq a => [a] -> [[a]] -> Bool
 listPartition xs xss =
   all (`Sets.elem` xs) (concat xss)
@@ -185,7 +232,54 @@ listPartition xs xss =
             listPartition' xss (Sets.union xs domain)
         | otherwise = False
 
+testListPartition :: [Bool]
+testListPartition = listPartition [1..5] <$> bellSet [1..5]
 
+--- generiert zu einer Partitionierung die EquivRelation
+generateEquivRelFromPartition :: Partition a -> [(a,a)]
+generateEquivRelFromPartition xxs =
+  do
+    xs <- xxs
+    x <- xs
+    y <- xs
+    return (x,y)
+
+testGenerateEquivRelFromPartition :: [(Integer, Integer)]
+testGenerateEquivRelFromPartition = generateEquivRelFromPartition [[1,2],[3,4,5]]
+
+accumulatedCodomain :: Ord a => DirectedRel a b -> DirectedRel a (Set b)
+accumulatedCodomain rel =
+  let (Set doms) = domR rel 
+  in Set $ do
+    elem <- doms
+    return (elem, Set $ codomainForDomElem elem rel)
+
+testAccumCodom :: DirectedRel Integer (Set Integer)
+testAccumCodom = accumulatedCodomain $ Set [(1,4),(2,4),(1,5)]
+
+accumulatedDomain :: (Ord a, Ord b) => DirectedRel a b -> DirectedRel b (Set a)
+accumulatedDomain rel =
+  let (Set range) = ranR rel 
+  in Set $ do
+    elem <- range
+    return (elem, Set $ domainForCodomElem elem rel)
+
+testAccumDom :: DirectedRel Integer (Set Integer)
+testAccumDom = accumulatedDomain $ Set [(1,4),(2,4),(1,5)]
+
+
+
+{-
+codomainForDomElem :: Eq a =>
+  a -> DirectedRel a b -> [b]
+codomainForDomElem e (Set pairs) =
+  [b | (a,b) <- pairs, a == e]
+
+domainForCodomElem :: Eq b =>
+  b -> DirectedRel a b -> [a]
+domainForCodomElem e (Set pairs) =
+  [a | (a,b) <- pairs, b == e]
+-}
 -- domR gives the domain of a relation.
 domR :: Ord a => DirectedRel a b -> Set a
 domR (Set r) = list2set [ x | (x,_) <- r ]

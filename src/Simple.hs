@@ -3,7 +3,7 @@ module Simple where
 
 import FD
 import Tree
-import TreeSugar
+import TreeSugar ( exist, (@=), (\/), conj )
 
 test :: Tree FD ()
 test = NewVar $ \v -> (Add (Same (Var v) (Const 1))) $ Return ()
