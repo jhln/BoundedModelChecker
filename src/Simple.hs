@@ -22,3 +22,5 @@ model vars = conj [ ((Var v) @= 1) \/ ((Var v) @= 2) | v <- vars ]
     --y <- newVar [0..3]
     --(( x .<. y) \/ (x `same` y))
     --x `hasValue` 2
+
+-- import NQueens, TreeSolver (FD, SOlver, Tree)
