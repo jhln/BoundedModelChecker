@@ -1,11 +1,12 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module FD where
 
 import           Solver
 
-import           Prelude hiding (lookup)
+import           Prelude hiding (lookup, sum)
 
 import           Control.Applicative hiding (Const)
 import           Control.Monad
@@ -27,7 +28,7 @@ data FDConstraint
 data FDExpr
   = Var FDTerm
   | Const Int
---  | Plus FDExpr FDExpr
+  | Plus FDExpr FDExpr
 --  | Minus FDExpr FDExpr
 --  | Mult FDExpr FDExpr
   deriving (Show)
@@ -63,13 +64,22 @@ deriving instance Alternative FD
 deriving instance MonadPlus FD
 
 addC :: FDConstraint -> FD Bool
-addC (Less (Var v1) (Var v2)) = (unFDTerm v1) .<. (unFDTerm v2)
-addC (Less (Const i) (Var v)) = (unFDTerm v) `greater` i
-addC (Less (Var v) (Const i)) = (unFDTerm v) `less` i
-addC (Same (Var v1) (Var v2)) = (unFDTerm v1) `same` (unFDTerm v2)
-addC (Same (Var v) (Const c)) = (unFDTerm v) `hasValue` c
-addC (Same (Const c) (Var v)) = (unFDTerm v) `hasValue` c
-addC (Diff (Var v1) (Var v2)) = (unFDTerm v1) `different` (unFDTerm v2)
+addC (Less (Var v1) (Var v2)) = unFDTerm v1 .<. unFDTerm v2
+addC (Less (Const i) (Var v)) = unFDTerm v `greater` i
+addC (Less (Var v) (Const i)) = unFDTerm v `less` i
+addC (Same (Var v1) (Var v2)) = unFDTerm v1 `same` unFDTerm v2
+addC (Same (Var v) (Const c)) = unFDTerm v `hasValue` c
+addC (Same (Const c) (Var v)) = unFDTerm v `hasValue` c
+addC (Same (Const c1) (Const c2)) = return (c1 == c2)
+addC (Same (Plus (Var v1) (Var v2)) (Const c)) = plus c (unFDTerm v1) (unFDTerm v2)
+addC (Same p@(Plus _ _) (Const c)) = sum c collected
+  where
+    collected = (map unFDTerm . collect) p
+    collect (Plus (Var v1) (Var v2)) = [v1, v2]
+    collect (Plus (Var v) p') = v:collect p'
+    collect (Plus p' (Var v)) = v:collect p'
+    collect (Plus p1 p2) = collect p1 ++ collect p2
+addC (Diff (Var v1) (Var v2)) = unFDTerm v1 `different` unFDTerm v2
 addC (Dom v l u)              = addC (Less v (Const (u + 1))) >>
                                 addC (Less (Const (l - 1)) v)
 
@@ -167,6 +177,12 @@ addBinaryConstraint f x y = do
                  addConstraint y constraint)
     return b
 
+addListConstraint :: ([FDVar] -> FD Bool) -> [FDVar] -> FD Bool
+addListConstraint f ls = do
+  let constraint = f ls
+  b <- constraint
+  when b $! mapM_ (`addConstraint` constraint) ls
+  return b
 
 -- Constrain a variable to a particular value.
 hasValue :: FDVar -> Int -> FD Bool
@@ -254,3 +270,126 @@ less x i = do
   if not $ IntSet.null xv'
     then (update x xv')
     else return False
+
+plus :: Int -> FDVar -> FDVar -> FD Bool
+plus i = addBinaryConstraint $! \x y -> do
+      xv <- lookup x
+      yv <- lookup y
+      let xv' = IntSet.filter (\(x' :: IntSet.Key) -> anyIS (\y' -> x' + y' == i) yv ) xv
+      let yv' = IntSet.filter (\(y' :: IntSet.Key) -> anyIS (\x' -> x' + y' == i) xv') yv
+      if not (IntSet.null xv' || IntSet.null yv')
+        then whenwhen (xv /= xv') (yv /= yv') (update x xv') (update y yv')
+        else return False
+
+anyIS :: (IntSet.Key -> Bool) -> IntSet -> Bool
+anyIS f = any f . IntSet.elems
+
+sum :: Int -> [FDVar] -> FD Bool
+sum i = addListConstraint sum'
+  where
+    sum' :: [FDVar] -> FD Bool
+    sum' [] = return True
+    sum' [x] = x `hasValue` i
+    sum' [x,y] = plus i x y
+    sum' [x,y,z] = do
+      xv <- lookup x
+      yv <- lookup y
+      zv <- lookup z
+      let xv' = IntSet.filter (\x' -> anyIS (\y' -> anyIS (\z' -> x' + y' + z' == i) zv) yv) xv
+      let yv' = IntSet.filter (\y' -> anyIS (\x' -> anyIS (\z' -> x' + y' + z' == i) zv) xv') yv
+      let zv' = IntSet.filter (\z' -> anyIS (\x' -> anyIS (\y' -> x' + y' + z' == i) yv') xv') zv
+      if not (IntSet.null xv' || IntSet.null yv' || IntSet.null zv')
+        then do
+        xu <- if xv' /= xv
+              then
+                update x xv'
+              else
+                return True
+        yu <- if yv' /= yv
+              then
+                update y yv'
+              else
+                return True
+        zu <- if zv' /= zv
+              then
+                update z zv'
+              else
+                return True
+        return (xu && yu && zu)
+        else
+        return False
+    sum' [a, b, c, d] = do
+      av <- lookup a
+      bv <- lookup b
+      cv <- lookup c
+      dv <- lookup d
+      let av' = IntSet.filter (\a' -> anyIS (\b' -> anyIS (\c' -> anyIS (\d' -> a' + b' + c' + d' == i) dv) cv) bv) av
+      let bv' = IntSet.filter (\b' -> anyIS (\c' -> anyIS (\d' -> anyIS (\a' -> a' + b' + c' + d' == i) av') dv) cv) bv
+      let cv' = IntSet.filter (\c' -> anyIS (\d' -> anyIS (\a' -> anyIS (\b' -> a' + b' + c' + d' == i) bv') av') dv) cv
+      let dv' = IntSet.filter (\d' -> anyIS (\a' -> anyIS (\b' -> anyIS (\c' -> a' + b' + c' + d' == i) cv') bv') av') dv
+      if not (IntSet.null av' || IntSet.null bv' || IntSet.null cv' || IntSet.null dv')
+        then do
+        au <- if av' /= av
+          then
+          update a av'
+          else
+          return True
+        bu <- if bv' /= bv
+          then
+          update b bv'
+          else
+          return True
+        cu <- if cv' /= cv
+          then
+          update c cv'
+          else
+          return True
+        du <- if dv' /= dv
+          then
+          update d dv'
+          else
+          return True
+        return (au && bu && cu && du)
+        else
+        return False
+    sum' [a, b, c, d, e] = do
+      av <- lookup a
+      bv <- lookup b
+      cv <- lookup c
+      dv <- lookup d
+      ev <- lookup d
+      let av' = IntSet.filter (\a' -> anyIS (\b' -> anyIS (\c' -> anyIS (\d' -> anyIS (\e' -> a' + b' + c' + d' + e' == i) ev) dv) cv) bv) av
+      let bv' = IntSet.filter (\b' -> anyIS (\a' -> anyIS (\c' -> anyIS (\d' -> anyIS (\e' -> a' + b' + c' + d' + e' == i) ev) dv) cv) av') bv
+      let cv' = IntSet.filter (\c' -> anyIS (\b' -> anyIS (\a' -> anyIS (\d' -> anyIS (\e' -> a' + b' + c' + d' + e' == i) ev) dv) av') bv') cv
+      let dv' = IntSet.filter (\d' -> anyIS (\b' -> anyIS (\c' -> anyIS (\a' -> anyIS (\e' -> a' + b' + c' + d' + e' == i) ev) av') cv') bv') dv
+      let ev' = IntSet.filter (\e' -> anyIS (\b' -> anyIS (\c' -> anyIS (\d' -> anyIS (\a' -> a' + b' + c' + d' + e' == i) av') dv') cv') bv') ev
+      if not (IntSet.null av' || IntSet.null bv' || IntSet.null cv' || IntSet.null dv' || IntSet.null ev')
+        then do
+        au <- if av' /= av
+          then
+          update a av'
+          else
+          return True
+        bu <- if bv' /= bv
+          then
+          update b bv'
+          else
+          return True
+        cu <- if cv' /= cv
+          then
+          update c cv'
+          else
+          return True
+        du <- if dv' /= dv
+          then
+          update d dv'
+          else
+          return True
+        eu <- if ev' /= ev
+          then
+          update e ev'
+          else
+          return True
+        return (au && bu && cu && du && eu)
+        else
+        return False

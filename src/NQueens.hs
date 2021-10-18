@@ -366,12 +366,6 @@ diagonals queens = conj [ (qi @/= (qj @+ (Const d))) /\
 enumerate queens values = conj [ enum queen values
                                | queen <- queens ]
 
-assignments :: [FDTerm] -> Tree FD [Int]
-assignments = mapM assignment
-
-assignment :: FDTerm -> Tree FD Int
-assignment q = Dynamic $ value q >>= (return . Return)
-
 enum :: FDTerm -> [Int] -> Tree FD ()
 enum var values = disj [  Var var @= value | value <- values ]
 
@@ -387,13 +381,3 @@ label (v:vs) = do
   {-do
   d <- (domain . unFDTerm) v
 -}
-
-value :: FDTerm -> FD Int
-value var = do
-  s <- get
-  let vm = varMap s
-  let vi = vm ! v
-  let d = domain vi
-  return (IntSet.findMin d)
-  where
-    (FDTerm v) = var
